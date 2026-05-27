@@ -37,3 +37,5 @@ build/
 
 ### Mac OS ###
 .DS_Store
+/frontend/src/main/resources/static/index.html
+/frontend/src/main/resources/static/assets/index-DvSwWLar.js

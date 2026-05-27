@@ -30,8 +30,8 @@ export default function App() {
     if (initialized.current) return;
     initialized.current = true;
 
-    const hostname = window.location.hostname;
-    const isBroadcasterMode = hostname === 'localhost' || hostname === '127.0.0.1';
+    // パスで役割判定 (/broadcast にアクセスした場合のみ配信者モード)
+    const isBroadcasterMode = window.location.pathname === '/broadcast';
     setIsBroadcaster(isBroadcasterMode);
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
