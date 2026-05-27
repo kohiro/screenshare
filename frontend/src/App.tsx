@@ -125,13 +125,17 @@ export default function App() {
         localStreamRef.current.getTracks().forEach(track => {
           const sender = pc.addTrack(track, localStreamRef.current!);
           
-          // 映像トラックの送信帯域を強制的に制限する (最大 1Mbps)
+          // 映像トラックの送信帯域と解像度を強制的に制限する
           if (track.kind === 'video') {
             const parameters = sender.getParameters();
             if (!parameters.encodings) {
               parameters.encodings = [{}];
             }
-            parameters.encodings[0].maxBitrate = 1000000; // 1,000,000 bps = 1 Mbps
+            parameters.encodings[0].maxBitrate = 1000000; // 1 Mbps
+            
+            // getDisplayMediaは解像度指定を無視する仕様があるため、送信時に強制的に縮小する（縦横1/2、面積1/4）
+            parameters.encodings[0].scaleResolutionDownBy = 2.0; 
+            
             sender.setParameters(parameters).catch(e => console.error(e));
           }
         });
