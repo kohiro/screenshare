@@ -123,7 +123,31 @@ export default function App() {
 
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach(track => {
-          pc.addTrack(track, localStreamRef.current!);
+          const sender = pc.addTrack(track, localStreamRef.current!);
+          
+          // 映像トラックの送信帯域を強制的に制限する (最大 1Mbps)
+          if (track.kind === 'video') {
+            const parameters = sender.getParameters();
+            if (!parameters.encodings) {
+              parameters.encodings = [{}];
+            }
+            parameters.encodings[0].maxBitrate = 1000000; // 1,000,000 bps = 1 Mbps
+            sender.setParameters(parameters).catch(e => console.error(e));
+          }
+        });
+
+        // H.264コーデック（ハードウェアエンコード）を強制する
+        const transceivers = pc.getTransceivers();
+        transceivers.forEach(transceiver => {
+          if (transceiver.sender.track?.kind === 'video' && RTCRtpReceiver.getCapabilities) {
+            const capabilities = RTCRtpReceiver.getCapabilities('video');
+            if (capabilities) {
+              const h264Codecs = capabilities.codecs.filter(c => c.mimeType.toLowerCase() === 'video/h264');
+              if (h264Codecs.length > 0) {
+                transceiver.setCodecPreferences(h264Codecs);
+              }
+            }
+          }
         });
       }
 
