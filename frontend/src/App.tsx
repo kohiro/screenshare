@@ -52,7 +52,22 @@ export default function App() {
             console.warn('マイク権限が取得できなかったため、ローカルIPが隠蔽される可能性があります', e);
           }
 
-          const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+          // 負荷軽減のため、解像度とフレームレートに上限を設ける
+          const stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              width: { max: 1920 }, // フルHDを上限に
+              height: { max: 1080 },
+              frameRate: { ideal: 15, max: 30 } // 画面共有なら15fps〜30fpsで十分
+            },
+            audio: false
+          });
+          
+          // エンコーダーに「画面共有（文字などのディテール重視）」であることを伝え、最適化させる
+          const videoTrack = stream.getVideoTracks()[0];
+          if ('contentHint' in videoTrack) {
+            videoTrack.contentHint = 'detail';
+          }
+
           localStreamRef.current = stream;
           if (localVideoRef.current) {
             localVideoRef.current.srcObject = stream;
